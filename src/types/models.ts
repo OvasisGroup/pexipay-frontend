@@ -56,13 +56,21 @@ export interface Country {
   currencySymbol: string;
 }
 
+export type MerchantStatus = "PENDING" | "APPROVED" | "SUSPENDED" | "REJECTED";
+
 export interface Merchant {
   id: string;
-  name: string;
-  description: string | null;
-  userId: string;
-  user?: User;
-  isActive: boolean;
+  ownerId: string;
+  businessName: string;
+  businessType?: string;
+  registrationNo?: string;
+  status: MerchantStatus;
+  countryId: string;
+  supportEmail?: string;
+  supportPhone?: string;
+  commissionRate: number;
+  webhookEndpoint?: string;
+  webhookSecret?: string;
   createdAt: string;
   updatedAt: string;
 }

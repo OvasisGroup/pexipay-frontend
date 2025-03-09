@@ -55,6 +55,7 @@ export default function DashboardLayout({
   const sidebarItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
     { icon: Users, label: "Merchants", href: "/dashboard/merchants" },
+
     { icon: CreditCard, label: "Payments", href: "/dashboard/payments" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
   ];
