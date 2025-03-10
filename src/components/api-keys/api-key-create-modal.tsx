@@ -93,6 +93,7 @@ export function ApiKeyCreateModal({ isOpen, onClose }: ApiKeyCreateModalProps) {
           description: "Failed to copy API key",
         });
       }
+      fetchApiKeys();
     }
   };
 

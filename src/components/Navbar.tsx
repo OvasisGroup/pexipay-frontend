@@ -38,9 +38,12 @@ export function Navbar() {
                 Login
               </Link>
             ) : (
-              <span className="text-gray-700">
+              <Link
+                href="/dashboard"
+                className="text-gray-700 hover:text-gray-900"
+              >
                 Welcome, {user.firstName} {user.lastName}
-              </span>
+              </Link>
             )}
           </div>
         </div>
