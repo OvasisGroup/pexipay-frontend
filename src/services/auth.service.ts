@@ -190,6 +190,7 @@ class AuthService {
 
   public logout(): void {
     this.clearTokens();
+    window.location.href = "/login";
   }
 
   public isAuthenticated(): boolean {

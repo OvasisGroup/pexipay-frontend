@@ -1,5 +1,4 @@
 import { ApiKeysTable } from "@/components/api-keys/api-keys-table";
-import { SettingsLayout } from "@/components/layouts/settings-layout";
 
 export default function DashboardApiKeysPage() {
   return (

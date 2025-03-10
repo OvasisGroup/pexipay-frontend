@@ -18,6 +18,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search, Download, PlusCircle } from "lucide-react";
+import React from "react";
 
 interface Payment {
   id: string;
@@ -36,18 +37,24 @@ interface ApiResponse {
   data: Payment[];
 }
 
-export default function PaymentsPage({ params }: { params: { id: string } }) {
+export default function PaymentsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { setLoading } = useLoading();
+
+  const { id } = React.use(params);
 
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         setLoading(true);
         const response = await axios.get<ApiResponse>(
-          `${endPoints.merchants.get}/${params.id}/payments`
+          `${endPoints.merchants.get}/${id}/payments`
         );
         setPayments(response.data.data);
       } catch (error: any) {
@@ -64,7 +71,7 @@ export default function PaymentsPage({ params }: { params: { id: string } }) {
     };
 
     fetchPayments();
-  }, [params.id]);
+  }, [id]);
 
   const filteredPayments = payments.filter((payment) =>
     payment.reference.toLowerCase().includes(searchQuery.toLowerCase())

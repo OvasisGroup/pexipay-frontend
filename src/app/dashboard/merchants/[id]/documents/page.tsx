@@ -10,6 +10,8 @@ import { toast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search, Upload, FileText, Download } from "lucide-react";
+import React from "react";
+import { useMerchant } from "@/hooks/useMerchant";
 
 interface Document {
   id: string;
@@ -26,37 +28,32 @@ interface ApiResponse {
   data: Document[];
 }
 
-export default function DocumentsPage({ params }: { params: { id: string } }) {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function DocumentsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { isLoading, fetchMerchantDocuments, documents } = useMerchant();
   const { setLoading } = useLoading();
 
+  const { id } = React.use(params);
+
   useEffect(() => {
-    const fetchDocuments = async () => {
+    const loadTransactions = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<ApiResponse>(
-          `${endPoints.merchants.get}/${params.id}/documents`
-        );
-        setDocuments(response.data.data);
-      } catch (error: any) {
-        toast({
-          title: "Error fetching documents",
-          description:
-            error?.response?.data?.message || "Could not fetch documents",
-          variant: "destructive",
-        });
+        await fetchMerchantDocuments(id);
+      } catch (error) {
       } finally {
-        setIsLoading(false);
         setLoading(false);
       }
     };
 
-    fetchDocuments();
-  }, [params.id]);
+    loadTransactions();
+  }, [id]);
 
-  const filteredDocuments = documents.filter((document) =>
+  const filteredDocuments = documents?.filter((document: any) =>
     document.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -112,13 +109,13 @@ export default function DocumentsPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {filteredDocuments.length === 0 ? (
+          {filteredDocuments?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No documents found.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredDocuments.map((document) => (
+              {filteredDocuments?.map((document: any) => (
                 <Card key={document.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">

@@ -6,28 +6,27 @@ export enum UserRole {
 }
 
 export enum TransactionStatus {
-  PENDING = "pending",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  CANCELLED = "cancelled",
-  REFUNDED = "refunded",
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum PaymentMethod {
-  CARD = "card",
-  BANK_TRANSFER = "bank_transfer",
-  MOBILE_MONEY = "mobile_money",
-  CRYPTO = "crypto",
+  CARD = "CARD",
+  BANK_TRANSFER = "BANK_TRANSFER",
+  MOBILE_MONEY = "MOBILE_MONEY",
+  CRYPTO = "CRYPTO",
 }
 
 export enum PaymentStatus {
-  INITIATED = "initiated",
-  PROCESSING = "processing",
-  SUCCESSFUL = "successful",
-  FAILED = "failed",
-  PENDING = "pending",
-  CANCELLED = "cancelled",
-  REFUNDED = "refunded",
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
 }
 
 export interface User {
@@ -39,24 +38,31 @@ export interface User {
   role: UserRole;
   isVerified: boolean;
   isActive: boolean;
-  lastLoginAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+  lastLoginAt: Date | null;
+  refreshToken?: string;
   countryId?: string;
   preferredCurrencyId?: string;
   country?: Country;
   preferredCurrency?: Currency;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Country {
   id: string;
   name: string;
   code: string;
-  currency: string;
-  currencySymbol: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type MerchantStatus = "PENDING" | "APPROVED" | "SUSPENDED" | "REJECTED";
+export enum MerchantStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  SUSPENDED = "SUSPENDED",
+  REJECTED = "REJECTED",
+}
 
 export interface Merchant {
   id: string;
@@ -71,8 +77,36 @@ export interface Merchant {
   commissionRate: number;
   webhookEndpoint?: string;
   webhookSecret?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
+  bankAccount?: BankAccount;
+  country?: Country;
+  owner?: User;
+  address?: Address;
+}
+
+export interface Address {
+  id: string;
+  merchantId: string;
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BankAccount {
+  id: string;
+  merchantId: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  swiftCode?: string;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Currency {
@@ -80,48 +114,92 @@ export interface Currency {
   name: string;
   code: string;
   symbol: string;
+  countryId: string;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PaymentProcessor {
-  id: string;
-  name: string;
-  description: string | null;
-  isActive: boolean;
-  supportedPaymentMethods: PaymentMethod[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
+  country?: Country;
 }
 
 export interface Transaction {
   id: string;
-  amount: number;
-  currency: string;
-  status: TransactionStatus;
-  paymentMethod: PaymentMethod;
-  paymentStatus: PaymentStatus;
-  merchantId: string;
-  merchant?: Merchant;
   userId: string;
+  merchantId: string;
+  amount: number;
+  currencyId: string;
+  description?: string;
+  status: TransactionStatus;
+  referenceId: string;
+  paymentMethod: PaymentMethod;
+  metadata?: any;
+  errorMessage?: string;
+  refundId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  currency?: Currency;
+  merchant?: Merchant;
   user?: User;
-  processorId: string;
-  processor?: PaymentProcessor;
-  metadata?: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
 }
 
-export enum NotificationStatus {
-  READ = "read",
-  UNREAD = "unread",
+export enum SettlementStatus {
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+}
+
+export interface Settlement {
+  id: string;
+  merchantId: string;
+  amount: number;
+  currencyId: string;
+  status: SettlementStatus;
+  description?: string;
+  reference: string;
+  initiatedAt: Date;
+  completedAt?: Date;
+  failureReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  currency?: Currency;
+  merchant?: Merchant;
+}
+
+export enum NotificationType {
+  TRANSACTION = "TRANSACTION",
+  SETTLEMENT = "SETTLEMENT",
+  ACCOUNT = "ACCOUNT",
+  SECURITY = "SECURITY",
+  SYSTEM = "SYSTEM",
 }
 
 export interface Notification {
   id: string;
+  userId?: string;
+  merchantId?: string;
+  type: NotificationType;
   title: string;
   message: string;
-  status: NotificationStatus;
-  createdAt: string;
+  isRead: boolean;
+  createdAt: Date;
+  readAt?: Date;
+  user?: User;
+  merchant?: Merchant;
+}
+
+export interface Document {
+  id: string;
+  userId?: string;
+  user?: User;
+  merchantId?: string;
+  merchant?: Merchant;
+  type: DocumentType;
+  url: string;
+  filename: string;
+  mimeType: string;
+  verified: boolean;
+  verifiedAt: Date | null;
+  verifiedBy: string | null;
+  uploadedAt: Date;
+  expiresAt: Date | null;
 }

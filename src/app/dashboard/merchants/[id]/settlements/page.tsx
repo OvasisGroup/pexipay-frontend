@@ -18,6 +18,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search, Download } from "lucide-react";
+import React from "react";
+import { useMerchant } from "@/hooks/useMerchant";
 
 interface Settlement {
   id: string;
@@ -44,38 +46,29 @@ interface ApiResponse {
 export default function SettlementsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const [settlements, setSettlements] = useState<Settlement[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const { isLoading, fetchMerchantSettlements, settlements } = useMerchant();
   const { setLoading } = useLoading();
 
+  const { id } = React.use(params);
+
   useEffect(() => {
-    const fetchSettlements = async () => {
+    const loadTransactions = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<ApiResponse>(
-          `${endPoints.merchants.get}/${params.id}/settlements`
-        );
-        setSettlements(response.data.data);
-      } catch (error: any) {
-        toast({
-          title: "Error fetching settlements",
-          description:
-            error?.response?.data?.message || "Could not fetch settlements",
-          variant: "destructive",
-        });
+        await fetchMerchantSettlements(id);
+      } catch (error) {
       } finally {
-        setIsLoading(false);
         setLoading(false);
       }
     };
 
-    fetchSettlements();
-  }, [params.id]);
+    loadTransactions();
+  }, [id]);
 
-  const filteredSettlements = settlements.filter((settlement) =>
+  const filteredSettlements = settlements?.filter((settlement) =>
     settlement.reference.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -123,7 +116,7 @@ export default function SettlementsPage({
             </div>
           </div>
 
-          {filteredSettlements.length === 0 ? (
+          {filteredSettlements?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No settlements found.
             </div>
@@ -141,23 +134,23 @@ export default function SettlementsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSettlements.map((settlement) => (
+                {filteredSettlements?.map((settlement) => (
                   <TableRow key={settlement.id}>
                     <TableCell>{settlement.reference}</TableCell>
                     <TableCell>
                       {new Intl.NumberFormat("en-US", {
                         style: "currency",
-                        currency: settlement.currency,
+                        currency: settlement.currency?.code,
                       }).format(settlement.amount)}
                     </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">
-                          {settlement.bankAccount.accountName}
+                          {settlement.merchant?.bankAccount?.accountName}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {settlement.bankAccount.bankName} -{" "}
-                          {settlement.bankAccount.accountNumber}
+                          {settlement.merchant?.bankAccount?.bankName} -{" "}
+                          {settlement.merchant?.bankAccount?.accountNumber}
                         </div>
                       </div>
                     </TableCell>
@@ -165,21 +158,21 @@ export default function SettlementsPage({
                       <div>
                         <div className="text-sm">
                           {new Date(
-                            settlement.period.start
+                            settlement.initiatedAt
                           ).toLocaleDateString()}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           to{" "}
-                          {new Date(settlement.period.end).toLocaleDateString()}
+                          {new Date(settlement.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          settlement.status === "completed"
+                          settlement.status === "COMPLETED"
                             ? "bg-green-100 text-green-800"
-                            : settlement.status === "processing"
+                            : settlement.status === "PROCESSING"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
                         }`}

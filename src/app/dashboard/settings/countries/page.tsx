@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { CountriesTable } from "@/components/countries/countries-table";
-import { SettingsLayout } from "@/components/layouts/settings-layout";
 import { useLoading } from "@/providers/LoadingProvider";
 
 export default function DashboardCountriesPage() {

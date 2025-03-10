@@ -20,77 +20,86 @@ import { useLoading } from "@/providers/LoadingProvider";
 import axios from "@/lib/axios";
 import { endPoints } from "@/lib/endpoints";
 import { Merchant } from "@/types/models";
+import React from "react";
+import { toast } from "@/components/ui/use-toast";
 
 export default function MerchantDetailLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const { setLoading } = useLoading();
   const [merchant, setMerchant] = useState<Merchant | null>(null);
 
+  const { id } = React.use(params);
+
   useEffect(() => {
     const fetchMerchant = async () => {
       try {
         setLoading(true);
         const { data } = await axios.get<Merchant>(
-          `${endPoints.merchants.get}/${params.id}`
+          `${endPoints.merchants.get}/${id}`
         );
         setMerchant(data);
-      } catch (error) {
-        console.error("Error fetching merchant:", error);
+      } catch (error: any) {
+        toast({
+          title: "Error fetching merchant",
+          description:
+            error?.response?.data?.message || "Could not fetch merchant",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchMerchant();
-  }, [params.id]);
+  }, [id]);
 
   const menuItems = [
     {
       icon: LayoutDashboard,
       label: "Overview",
-      href: `/dashboard/merchants/${params.id}`,
+      href: `/dashboard/merchants/${id}`,
     },
     {
       icon: Building2,
       label: "Bank Account",
-      href: `/dashboard/merchants/${params.id}/bank-account`,
+      href: `/dashboard/merchants/${id}/bank-account`,
     },
     {
       icon: CreditCard,
       label: "Transactions",
-      href: `/dashboard/merchants/${params.id}/transactions`,
+      href: `/dashboard/merchants/${id}/transactions`,
     },
     {
       icon: Receipt,
       label: "Payments",
-      href: `/dashboard/merchants/${params.id}/payments`,
+      href: `/dashboard/merchants/${id}/payments`,
     },
     {
       icon: Wallet,
       label: "Settlements",
-      href: `/dashboard/merchants/${params.id}/settlements`,
+      href: `/dashboard/merchants/${id}/settlements`,
     },
     {
       icon: Bell,
       label: "Notifications",
-      href: `/dashboard/merchants/${params.id}/notifications`,
+      href: `/dashboard/merchants/${id}/notifications`,
     },
     {
       icon: FileText,
       label: "Documents",
-      href: `/dashboard/merchants/${params.id}/documents`,
+      href: `/dashboard/merchants/${id}/documents`,
     },
     {
       icon: Settings,
       label: "Settings",
-      href: `/dashboard/merchants/${params.id}/settings`,
+      href: `/dashboard/merchants/${id}/settings`,
     },
   ];
 

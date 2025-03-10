@@ -18,7 +18,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search, Download } from "lucide-react";
-import { Notification, NotificationStatus } from "@/types/models";
+import { Notification } from "@/types/models";
+import React from "react";
+import { useMerchant } from "@/hooks/useMerchant";
 
 interface ApiResponse {
   data: Notification[];
@@ -27,38 +29,30 @@ interface ApiResponse {
 export default function NotificationsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const { isLoading, fetchMerchantNotifications, notifications } =
+    useMerchant();
   const { setLoading } = useLoading();
 
+  const { id } = React.use(params);
+
   useEffect(() => {
-    const fetchNotifications = async () => {
+    const loadTransactions = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<ApiResponse>(
-          `${endPoints.merchants.get}/${params.id}/transactions`
-        );
-        setNotifications(response.data.data);
-      } catch (error: any) {
-        toast({
-          title: "Error fetching transactions",
-          description:
-            error?.response?.data?.message || "Could not fetch transactions",
-          variant: "destructive",
-        });
+        await fetchMerchantNotifications(id);
+      } catch (error) {
       } finally {
-        setIsLoading(false);
         setLoading(false);
       }
     };
 
-    fetchNotifications();
-  }, [params.id]);
+    loadTransactions();
+  }, [id]);
 
-  const filteredNotifications = notifications.filter((notification) =>
+  const filteredNotifications = notifications?.filter((notification) =>
     notification.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -106,7 +100,7 @@ export default function NotificationsPage({
             </div>
           </div>
 
-          {filteredNotifications.length === 0 ? (
+          {filteredNotifications?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No notifications found.
             </div>
@@ -122,21 +116,19 @@ export default function NotificationsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredNotifications.map((notification) => (
+                {filteredNotifications?.map((notification) => (
                   <TableRow key={notification.id}>
                     <TableCell>{notification.title}</TableCell>
                     <TableCell>{notification.message}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          notification.status === NotificationStatus.READ
+                          notification.isRead
                             ? "bg-green-100 text-green-800"
-                            : notification.status === NotificationStatus.UNREAD
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {notification.status}
+                        {notification.isRead ? "Read" : "Unread"}
                       </span>
                     </TableCell>
                     <TableCell>

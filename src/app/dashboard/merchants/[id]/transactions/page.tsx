@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLoading } from "@/providers/LoadingProvider";
-import axios from "@/lib/axios";
-import { endPoints } from "@/lib/endpoints";
-import { toast } from "@/components/ui/use-toast";
 import {
   Table,
   TableBody,
@@ -18,6 +15,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search, Download } from "lucide-react";
+import React from "react";
+import { useMerchant } from "@/hooks/useMerchant";
 
 interface Transaction {
   id: string;
@@ -37,39 +36,33 @@ interface ApiResponse {
 export default function TransactionsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const { isLoading, fetchMerchantTransactions, transactions } = useMerchant();
   const { setLoading } = useLoading();
 
+  const { id } = React.use(params);
+
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const loadTransactions = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<ApiResponse>(
-          `${endPoints.merchants.get}/${params.id}/transactions`
-        );
-        setTransactions(response.data.data);
-      } catch (error: any) {
-        toast({
-          title: "Error fetching transactions",
-          description:
-            error?.response?.data?.message || "Could not fetch transactions",
-          variant: "destructive",
-        });
+        const response = await fetchMerchantTransactions(id);
+      } catch (error) {
+        // Error is already handled in the hook
       } finally {
-        setIsLoading(false);
         setLoading(false);
       }
     };
 
-    fetchTransactions();
-  }, [params.id]);
+    loadTransactions();
+  }, [id]);
 
-  const filteredTransactions = transactions.filter((transaction) =>
-    transaction.reference.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTransactions = transactions?.filter((transaction) =>
+    transaction.merchant?.businessName
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase())
   );
 
   if (isLoading) {
@@ -116,7 +109,7 @@ export default function TransactionsPage({
             </div>
           </div>
 
-          {filteredTransactions.length === 0 ? (
+          {filteredTransactions?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No transactions found.
             </div>
@@ -125,31 +118,30 @@ export default function TransactionsPage({
               <TableHeader>
                 <TableRow>
                   <TableHead>Reference</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Reference</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Description</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTransactions.map((transaction) => (
+                {filteredTransactions?.map((transaction) => (
                   <TableRow key={transaction.id}>
-                    <TableCell>{transaction.reference}</TableCell>
-                    <TableCell>{transaction.type}</TableCell>
+                    <TableCell>{transaction.referenceId}</TableCell>
+                    <TableCell>{transaction.merchant?.businessName}</TableCell>
                     <TableCell>
                       {new Intl.NumberFormat("en-US", {
                         style: "currency",
-                        currency: transaction.currency,
+                        currency: transaction.currency?.code,
                       }).format(transaction.amount)}
                     </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          transaction.status === "completed"
+                          transaction.status === "SUCCESS"
                             ? "bg-green-100 text-green-800"
-                            : transaction.status === "pending"
+                            : transaction.status === "PENDING"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
                         }`}
@@ -157,7 +149,6 @@ export default function TransactionsPage({
                         {transaction.status}
                       </span>
                     </TableCell>
-                    <TableCell>{transaction.description}</TableCell>
                     <TableCell>
                       {new Date(transaction.createdAt).toLocaleDateString()}
                     </TableCell>

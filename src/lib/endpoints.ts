@@ -8,8 +8,33 @@ export const endPoints = {
   merchants: {
     get: "/merchants",
     create: "/merchants",
+    getById: (id: string): string => `/merchants/${id}`,
     update: (id: string): string => `/merchants/${id}`,
     delete: (id: string): string => `/merchants/${id}`,
+  },
+  bankAccounts: {
+    get: (merchantId: string): string =>
+      `/merchants/${merchantId}/bank-account`,
+    create: (merchantId: string): string =>
+      `/merchants/${merchantId}/bank-account`,
+    update: (merchantId: string): string =>
+      `/merchants/${merchantId}/bank-account`,
+    delete: (merchantId: string): string =>
+      `/merchants/${merchantId}/bank-account`,
+  },
+  transactions: {
+    get: (merchantId: string): string =>
+      `/merchants/${merchantId}/transactions`,
+  },
+  settlements: {
+    get: (merchantId: string): string => `/merchants/${merchantId}/settlements`,
+  },
+  notifications: {
+    get: (merchantId: string): string =>
+      `/merchants/${merchantId}/notifications`,
+  },
+  documents: {
+    get: (merchantId: string): string => `/merchants/${merchantId}/documents`,
   },
   countries: {
     get: "/countries",

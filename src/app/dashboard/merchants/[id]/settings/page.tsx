@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Merchant } from "@/types/models";
-
+import React from "react";
 const merchantSettingsSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
   businessType: z.string().optional(),
@@ -33,9 +33,15 @@ const merchantSettingsSchema = z.object({
 
 type MerchantSettingsValues = z.infer<typeof merchantSettingsSchema>;
 
-export default function SettingsPage({ params }: { params: { id: string } }) {
+export default function SettingsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const [isLoading, setIsLoading] = useState(true);
   const { setLoading } = useLoading();
+
+  const { id } = React.use(params);
 
   const form = useForm<MerchantSettingsValues>({
     resolver: zodResolver(merchantSettingsSchema),
@@ -46,7 +52,7 @@ export default function SettingsPage({ params }: { params: { id: string } }) {
       try {
         setLoading(true);
         const { data } = await axios.get<Merchant>(
-          `${endPoints.merchants.get}/${params.id}`
+          `${endPoints.merchants.get}/${id}`
         );
         form.reset({
           businessName: data.businessName,
@@ -71,12 +77,12 @@ export default function SettingsPage({ params }: { params: { id: string } }) {
     };
 
     fetchMerchant();
-  }, [params.id]);
+  }, [id]);
 
   const onSubmit = async (values: MerchantSettingsValues) => {
     try {
       setLoading(true);
-      await axios.put(`${endPoints.merchants.get}/${params.id}`, values);
+      await axios.put(`${endPoints.merchants.get}/${id}`, values);
       toast({
         title: "Success",
         description: "Merchant details updated successfully",

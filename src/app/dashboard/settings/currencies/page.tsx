@@ -1,6 +1,5 @@
 "use client";
 import { CurrenciesTable } from "@/components/currencies/currencies-table";
-import { SettingsLayout } from "@/components/layouts/settings-layout";
 import { useLoading } from "@/providers/LoadingProvider";
 import { useEffect } from "react";
 
