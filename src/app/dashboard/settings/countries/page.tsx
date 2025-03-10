@@ -1,7 +1,18 @@
+"use client";
+
+import { useEffect } from "react";
 import { CountriesTable } from "@/components/countries/countries-table";
 import { SettingsLayout } from "@/components/layouts/settings-layout";
+import { useLoading } from "@/providers/LoadingProvider";
 
 export default function DashboardCountriesPage() {
+  const { setLoading } = useLoading();
+
+  useEffect(() => {
+    // Turn off loading when component mounts (content is ready)
+    setLoading(false);
+  }, [setLoading]);
+
   return (
     <SettingsLayout>
       <div className="space-y-4">

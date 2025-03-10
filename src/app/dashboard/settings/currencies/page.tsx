@@ -1,7 +1,16 @@
+"use client";
 import { CurrenciesTable } from "@/components/currencies/currencies-table";
 import { SettingsLayout } from "@/components/layouts/settings-layout";
+import { useLoading } from "@/providers/LoadingProvider";
+import { useEffect } from "react";
 
 export default function DashboardCurrenciesPage() {
+  const { setLoading } = useLoading();
+
+  useEffect(() => {
+    // Turn off loading when component mounts (content is ready)
+    setLoading(false);
+  }, [setLoading]);
   return (
     <SettingsLayout>
       <div className="space-y-4">

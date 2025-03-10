@@ -15,15 +15,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Search } from "lucide-react";
 import { Merchant } from "@/types/models";
-
+import { useLoading } from "@/providers/LoadingProvider";
 export default function MerchantList() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const { setLoading } = useLoading();
   const {
     merchants,
     isLoading,
     fetchMerchants,
-    deleteMerchant,
     currentPage,
     totalPages,
     nextPage,
@@ -32,6 +32,7 @@ export default function MerchantList() {
 
   useEffect(() => {
     fetchMerchants();
+    setLoading(false);
   }, [fetchMerchants]);
 
   const filteredMerchants = merchants.filter((merchant) =>
@@ -46,6 +47,26 @@ export default function MerchantList() {
     {
       accessorKey: "status",
       header: "Status",
+    },
+    {
+      accessorKey: "businessType",
+      header: "Business Type",
+    },
+    {
+      accessorKey: "registrationNo",
+      header: "Registration No",
+    },
+    {
+      accessorKey: "supportEmail",
+      header: "Support Email",
+    },
+    {
+      accessorKey: "supportPhone",
+      header: "Support Phone",
+    },
+    {
+      accessorKey: "commissionRate",
+      header: "Commission Rate",
     },
     {
       accessorKey: "actions",
@@ -64,18 +85,12 @@ export default function MerchantList() {
           <Button
             variant="outline"
             size="sm"
+            className="bg-blue-500 text-white"
             onClick={() =>
               router.push(`/dashboard/merchants/${row.original.id}/edit`)
             }
           >
             Edit
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => deleteMerchant(row.original.id)}
-          >
-            Delete
           </Button>
         </div>
       ),
