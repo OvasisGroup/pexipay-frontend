@@ -2,6 +2,7 @@ import { endPoints } from "@/lib/endpoints";
 import { useState, useCallback } from "react";
 import axios from "@/lib/axios";
 import { toast } from "@/components/ui/use-toast";
+import { useLoading } from "@/providers/LoadingProvider";
 
 interface Currency {
   id: string;
@@ -23,13 +24,13 @@ interface UseCurrencyOptions {
 export function useCurrency({ limit = 10 }: UseCurrencyOptions = {}) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, setLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CurrencyResponse | null>(null);
 
   const fetchCurrencies = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
 
       const searchParams = new URLSearchParams({
@@ -47,7 +48,7 @@ export function useCurrency({ limit = 10 }: UseCurrencyOptions = {}) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, [page, search, limit]);
 

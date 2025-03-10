@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useLoading } from "@/providers/LoadingProvider";
+import axios from "@/lib/axios";
+import { endPoints } from "@/lib/endpoints";
+import { toast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import axios from "@/lib/axios";
-import { endPoints } from "@/lib/endpoints";
-import { Merchant } from "@/types/models";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -18,14 +20,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
-import Link from "next/link";
-import { useLoading } from "@/providers/LoadingProvider";
-import React from "react";
-import { ArrowLeft } from "lucide-react";
-const merchantFormSchema = z.object({
+import { Merchant } from "@/types/models";
+
+const merchantSettingsSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
   businessType: z.string().optional(),
   registrationNo: z.string().optional(),
@@ -34,27 +31,14 @@ const merchantFormSchema = z.object({
   webhookEndpoint: z.string().url().optional().or(z.literal("")),
 });
 
-type MerchantFormValues = z.infer<typeof merchantFormSchema>;
+type MerchantSettingsValues = z.infer<typeof merchantSettingsSchema>;
 
-export default function EditMerchantPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = React.use(params);
-  const router = useRouter();
-  const { isLoading, setLoading } = useLoading();
+export default function SettingsPage({ params }: { params: { id: string } }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const { setLoading } = useLoading();
 
-  const form = useForm<MerchantFormValues>({
-    resolver: zodResolver(merchantFormSchema),
-    defaultValues: {
-      businessName: "",
-      businessType: "",
-      registrationNo: "",
-      supportEmail: "",
-      supportPhone: "",
-      webhookEndpoint: "",
-    },
+  const form = useForm<MerchantSettingsValues>({
+    resolver: zodResolver(merchantSettingsSchema),
   });
 
   useEffect(() => {
@@ -62,64 +46,64 @@ export default function EditMerchantPage({
       try {
         setLoading(true);
         const { data } = await axios.get<Merchant>(
-          `${endPoints.merchants.get}/${id}`
+          `${endPoints.merchants.get}/${params.id}`
         );
-
-        // Set form values from merchant data
         form.reset({
           businessName: data.businessName,
-          businessType: data.businessType || "",
-          registrationNo: data.registrationNo || "",
-          supportEmail: data.supportEmail || "",
-          supportPhone: data.supportPhone || "",
-          webhookEndpoint: data.webhookEndpoint || "",
+          businessType: data.businessType,
+          registrationNo: data.registrationNo,
+          supportEmail: data.supportEmail,
+          supportPhone: data.supportPhone,
+          webhookEndpoint: data.webhookEndpoint,
         });
       } catch (error: any) {
         toast({
-          title: "Error fetching merchant",
+          title: "Error fetching merchant details",
           description:
             error?.response?.data?.message ||
             "Could not fetch merchant details",
           variant: "destructive",
         });
       } finally {
+        setIsLoading(false);
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchMerchant();
-    }
-  }, [id, form]);
+    fetchMerchant();
+  }, [params.id]);
 
-  async function onSubmit(values: MerchantFormValues) {
+  const onSubmit = async (values: MerchantSettingsValues) => {
     try {
-      await axios.put(`${endPoints.merchants.update}/${id}`, values);
+      setLoading(true);
+      await axios.put(`${endPoints.merchants.get}/${params.id}`, values);
       toast({
         title: "Success",
-        description: "Merchant updated successfully",
+        description: "Merchant details updated successfully",
       });
-      router.push(`/dashboard/merchants/${id}`);
-      router.refresh();
     } catch (error: any) {
       toast({
-        title: "Error updating merchant",
+        title: "Error updating merchant details",
         description:
           error?.response?.data?.message || "Could not update merchant details",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-12 w-[300px]" />
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-[200px]" />
+          <Skeleton className="h-10 w-[150px]" />
+        </div>
         <Card>
-          <CardContent className="space-y-4 pt-6">
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-            <Skeleton className="h-4 w-[300px]" />
+          <CardContent className="pt-6">
+            <Skeleton className="h-4 w-full mb-4" />
+            <Skeleton className="h-4 w-[80%]" />
           </CardContent>
         </Card>
       </div>
@@ -129,18 +113,13 @@ export default function EditMerchantPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Edit Merchant</h1>
-        <Link href={`/dashboard/merchants`}>
-          <Button variant="outline">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
-          </Button>
-        </Link>
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <Button onClick={form.handleSubmit(onSubmit)}>Save Changes</Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Business Details</CardTitle>
+          <CardTitle>Merchant Details</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -228,16 +207,6 @@ export default function EditMerchantPage({
                   </FormItem>
                 )}
               />
-
-              <div className="flex justify-end space-x-4">
-                <Link href={`/dashboard/merchants/${id}`}>
-                  <Button variant="outline" type="button">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span>Back</span>
-                  </Button>
-                </Link>
-                <Button type="submit">Save Changes</Button>
-              </div>
             </form>
           </Form>
         </CardContent>

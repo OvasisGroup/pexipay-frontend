@@ -2,6 +2,7 @@ import { endPoints } from "@/lib/endpoints";
 import { useState, useCallback } from "react";
 import axios from "@/lib/axios";
 import { toast } from "@/components/ui/use-toast";
+import { useLoading } from "@/providers/LoadingProvider";
 
 interface Country {
   id: string;
@@ -20,15 +21,15 @@ interface UseCountryOptions {
 }
 
 export function useCountry({ limit = 10 }: UseCountryOptions = {}) {
+  const { isLoading, setLoading } = useLoading();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CountryResponse | null>(null);
 
   const fetchCountries = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
 
       const searchParams = new URLSearchParams({
@@ -45,7 +46,7 @@ export function useCountry({ limit = 10 }: UseCountryOptions = {}) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, [page, search, limit]);
 

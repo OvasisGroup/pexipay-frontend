@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import axios from "@/lib/axios";
 import { toast } from "@/components/ui/use-toast";
 import { Merchant } from "@/types/models";
+import { useLoading } from "@/providers/LoadingProvider";
 
 interface MerchantResponse {
   items: Merchant[];
@@ -16,13 +17,13 @@ interface UseMerchantOptions {
 export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, setLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<MerchantResponse | null>(null);
 
   const fetchMerchants = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
 
       const searchParams = new URLSearchParams({
@@ -39,7 +40,7 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, [page, search, limit]);
 

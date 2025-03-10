@@ -41,6 +41,10 @@ export default function MerchantList() {
 
   const columns = [
     {
+      accessorKey: "id",
+      header: "#",
+    },
+    {
       accessorKey: "businessName",
       header: "Business Name",
     },
@@ -87,7 +91,7 @@ export default function MerchantList() {
             size="sm"
             className="bg-blue-500 text-white"
             onClick={() =>
-              router.push(`/dashboard/merchants/${row.original.id}/edit`)
+              router.push(`/dashboard/merchants/${row.original.id}/settings`)
             }
           >
             Edit
@@ -147,11 +151,13 @@ export default function MerchantList() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredMerchants.map((merchant) => (
+              filteredMerchants.map((merchant, index) => (
                 <TableRow key={merchant.id}>
                   {columns.map((column) => (
                     <TableCell key={`${merchant.id}-${column.accessorKey}`}>
-                      {column.cell
+                      {column.accessorKey === "id"
+                        ? `${index + 1}.`
+                        : column.cell
                         ? column.cell({ row: { original: merchant } })
                         : String(
                             merchant[column.accessorKey as keyof Merchant]

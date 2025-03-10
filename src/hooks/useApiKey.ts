@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import axios from "@/lib/axios";
 import { toast } from "@/components/ui/use-toast";
 import { endPoints } from "@/lib/endpoints";
+import { useLoading } from "@/providers/LoadingProvider";
 
 interface IpWhitelist {
   id: string;
@@ -31,13 +32,13 @@ interface ApiKeyResponse {
 }
 
 export function useApiKey() {
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, setLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
 
   const fetchApiKeys = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
       const { data } = await axios.get<{ apiKeys: ApiKey[] }>(
         endPoints.apiKeys.get
@@ -46,7 +47,7 @@ export function useApiKey() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch API keys");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
@@ -54,7 +55,7 @@ export function useApiKey() {
     data: CreateApiKeyData
   ): Promise<ApiKeyResponse> => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const response = await axios.post<{
         message: string;
         apiKey: ApiKey;
@@ -81,13 +82,13 @@ export function useApiKey() {
       });
       throw new Error(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const deactivateApiKey = async (id: string) => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       await axios.post(endPoints.apiKeys.deactivate(id));
       toast({
         title: "Success",
@@ -104,13 +105,13 @@ export function useApiKey() {
       });
       throw new Error(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const deleteApiKey = async (id: string) => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       await axios.delete(endPoints.apiKeys.delete(id));
       toast({
         title: "Success",
@@ -127,7 +128,7 @@ export function useApiKey() {
       });
       throw new Error(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -138,7 +139,7 @@ export function useApiKey() {
     description?: string
   ) => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       await axios.post(endPoints.apiKeys.ipWhitelist(apiKeyId), {
         ipAddress,
         description,
@@ -159,7 +160,7 @@ export function useApiKey() {
       });
       throw new Error(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -167,7 +168,7 @@ export function useApiKey() {
     apiKeyId: string
   ): Promise<IpWhitelist[]> => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const { data } = await axios.get<IpWhitelist[]>(
         endPoints.apiKeys.ipWhitelist(apiKeyId)
       );
@@ -184,7 +185,7 @@ export function useApiKey() {
       });
       throw new Error(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -193,7 +194,7 @@ export function useApiKey() {
     whitelistId: string
   ) => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       await axios.delete(
         endPoints.apiKeys.ipWhitelistDelete(apiKeyId, whitelistId)
       );
@@ -215,7 +216,7 @@ export function useApiKey() {
       });
       throw new Error(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
