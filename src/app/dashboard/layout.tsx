@@ -63,6 +63,7 @@ export default function DashboardLayout({
     setLoading(true);
     setIsSidebarOpen(false);
     router.push(href);
+    setLoading(false);
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);

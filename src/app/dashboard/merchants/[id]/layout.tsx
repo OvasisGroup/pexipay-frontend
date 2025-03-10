@@ -14,6 +14,7 @@ import {
   FileText,
   Settings,
   ArrowLeft,
+  Bell,
 } from "lucide-react";
 import { useLoading } from "@/providers/LoadingProvider";
 import axios from "@/lib/axios";
@@ -75,6 +76,11 @@ export default function MerchantDetailLayout({
       icon: Wallet,
       label: "Settlements",
       href: `/dashboard/merchants/${params.id}/settlements`,
+    },
+    {
+      icon: Bell,
+      label: "Notifications",
+      href: `/dashboard/merchants/${params.id}/notifications`,
     },
     {
       icon: FileText,
