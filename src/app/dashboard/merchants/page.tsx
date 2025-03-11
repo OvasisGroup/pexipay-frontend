@@ -49,10 +49,6 @@ export default function MerchantList() {
       header: "Business Name",
     },
     {
-      accessorKey: "status",
-      header: "Status",
-    },
-    {
       accessorKey: "businessType",
       header: "Business Type",
     },
@@ -65,12 +61,8 @@ export default function MerchantList() {
       header: "Support Email",
     },
     {
-      accessorKey: "supportPhone",
-      header: "Support Phone",
-    },
-    {
-      accessorKey: "commissionRate",
-      header: "Commission Rate",
+      accessorKey: "status",
+      header: "Status",
     },
     {
       accessorKey: "actions",
