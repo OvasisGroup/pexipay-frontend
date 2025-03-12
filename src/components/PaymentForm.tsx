@@ -7,6 +7,13 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { endPoints } from "@/lib/endpoints";
+import axios from "@/lib/axios";
+
+interface CheckoutResponse {
+  sessionId: string;
+  checkoutUrl: string;
+}
 
 const checkoutSchema = z.object({
   merchantId: z.string().min(1, "Merchant ID is required"),
@@ -26,23 +33,34 @@ export function PaymentForm() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      merchantId: "5b5608a8-e3e4-428e-934f-03198c414e26",
+      currency: "USD",
+      amount: 0,
+      successUrl: "http://github.com/testing-success-url",
+      cancelUrl: "http://github.com/testing-cancel-url",
+    },
   });
 
-  const createCheckoutSession = async (data: any) => {
+  const createCheckoutSession = async (
+    bodyReqBody: z.infer<typeof checkoutSchema>
+  ) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/payments/checkout/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await axios.post<CheckoutResponse>(
+        endPoints.checkout.create,
+        {
+          ...bodyReqBody,
+        }
+      );
 
-      const result = await response.json();
-      if (response.ok) {
-        setSessionId(result.sessionId);
-        window.location.href = result.checkoutUrl;
+      const { data } = response;
+
+      if (data.checkoutUrl) {
+        setSessionId(data.sessionId);
+        window.location.href = data.checkoutUrl;
       } else {
-        throw new Error(result.message);
+        throw new Error("No checkout URL received from the server");
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
@@ -54,24 +72,13 @@ export function PaymentForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Create Payment Session</CardTitle>
+        <CardTitle>Make Your Payment</CardTitle>
       </CardHeader>
       <CardContent>
         <form
           onSubmit={handleSubmit(createCheckoutSession)}
           className="space-y-4"
         >
-          <div>
-            <Input
-              {...register("merchantId")}
-              placeholder="Merchant ID"
-              className="w-full"
-            />
-            {errors.merchantId && (
-              <p className="text-red-500 text-sm">{`${errors.merchantId.message}`}</p>
-            )}
-          </div>
-
           <div>
             <Input
               {...register("amount", { valueAsNumber: true })}
@@ -93,28 +100,6 @@ export function PaymentForm() {
             />
             {errors.currency && (
               <p className="text-red-500 text-sm">{`${errors.currency.message}`}</p>
-            )}
-          </div>
-
-          <div>
-            <Input
-              {...register("successUrl")}
-              placeholder="Success URL"
-              className="w-full"
-            />
-            {errors.successUrl && (
-              <p className="text-red-500 text-sm">{`${errors.successUrl.message}`}</p>
-            )}
-          </div>
-
-          <div>
-            <Input
-              {...register("cancelUrl")}
-              placeholder="Cancel URL"
-              className="w-full"
-            />
-            {errors.cancelUrl && (
-              <p className="text-red-500 text-sm">{`${errors.cancelUrl.message}`}</p>
             )}
           </div>
 

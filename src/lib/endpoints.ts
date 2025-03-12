@@ -42,8 +42,13 @@ export const endPoints = {
     update: (id: string): string => `/countries/${id}`,
     delete: (id: string): string => `/countries/${id}`,
   },
+
+  checkout: {
+    create: `/payments/checkout/session`,
+    initatePayment: (sessiondId: string) => `/payments/checkout/${sessiondId}`,
+  },
   payments: {
-    get: "/payments",
+    get: "/payments/",
     create: "/payments",
     update: (id: string): string => `/payments/${id}`,
     delete: (id: string): string => `/payments/${id}`,
