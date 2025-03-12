@@ -233,6 +233,30 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
     }
   };
 
+  const fetchMerchantPayments = async (
+    merchantId: string
+  ): Promise<Settlement[]> => {
+    try {
+      setLoading(true);
+      const response = await axios.get<ApiListResponse<Settlement>>(
+        endPoints.settlements.get(merchantId)
+      );
+      setSettlements(response.data.data);
+      return response.data.data;
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || "Failed to fetch settlements";
+      toast({
+        title: "Error fetching settlements",
+        description: message,
+        variant: "destructive",
+      });
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchMerchantNotifications = async (
     merchantId: string
   ): Promise<Notification[]> => {
