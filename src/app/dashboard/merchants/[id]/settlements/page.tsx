@@ -68,7 +68,7 @@ export default function SettlementsPage({
     loadTransactions();
   }, [id]);
 
-  const filteredSettlements = settlements?.filter((settlement) =>
+  const filteredSettlements = settlements?.items?.filter((settlement) =>
     settlement.reference.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -124,6 +124,7 @@ export default function SettlementsPage({
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>#</TableHead>
                   <TableHead>Reference</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Bank Account</TableHead>
@@ -134,8 +135,9 @@ export default function SettlementsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSettlements?.map((settlement) => (
+                {filteredSettlements?.map((settlement, index: number) => (
                   <TableRow key={settlement.id}>
+                    <TableCell>{index + 1}.</TableCell>
                     <TableCell>{settlement.reference}</TableCell>
                     <TableCell>
                       {new Intl.NumberFormat("en-US", {

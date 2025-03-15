@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, Trash } from "lucide-react";
+import { Edit } from "lucide-react";
 import Link from "next/link";
 import { useLoading } from "@/providers/LoadingProvider";
 import React from "react";

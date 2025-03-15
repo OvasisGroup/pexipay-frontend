@@ -18,21 +18,6 @@ import { Search, Download } from "lucide-react";
 import React from "react";
 import { useMerchant } from "@/hooks/useMerchant";
 
-interface Transaction {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  type: string;
-  description: string;
-  createdAt: string;
-  reference: string;
-}
-
-interface ApiResponse {
-  data: Transaction[];
-}
-
 export default function TransactionsPage({
   params,
 }: {
@@ -40,26 +25,18 @@ export default function TransactionsPage({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const { isLoading, fetchMerchantTransactions, transactions } = useMerchant();
-  const { setLoading } = useLoading();
 
   const { id } = React.use(params);
 
   useEffect(() => {
     const loadTransactions = async () => {
-      try {
-        setLoading(true);
-        const response = await fetchMerchantTransactions(id);
-      } catch (error) {
-        // Error is already handled in the hook
-      } finally {
-        setLoading(false);
-      }
+      await fetchMerchantTransactions(id);
     };
 
     loadTransactions();
   }, [id]);
 
-  const filteredTransactions = transactions?.filter((transaction) =>
+  const filteredTransactions = transactions?.items?.filter((transaction) =>
     transaction.merchant?.businessName
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase())

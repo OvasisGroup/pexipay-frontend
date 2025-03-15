@@ -8,11 +8,41 @@ import {
   Settlement,
   Notification,
   Document,
+  Payment,
+  PaymentSession,
 } from "@/types/models";
 import { useLoading } from "@/providers/LoadingProvider";
 
 interface MerchantResponse {
   items: Merchant[];
+  total: number;
+}
+
+interface PaymentResponse {
+  items: Payment[];
+  total: number;
+}
+
+interface PaymentSessionResponse {
+  items: PaymentSession[];
+  total: number;
+}
+interface SettlementResponse {
+  items: Settlement[];
+  total: number;
+}
+
+interface TransactionResponse {
+  items: Transaction[];
+  total: number;
+}
+interface NotificationResponse {
+  items: Notification[];
+  total: number;
+}
+
+interface DocumentResponse {
+  items: Document[];
   total: number;
 }
 
@@ -27,25 +57,33 @@ interface UseMerchantOptions {
 
 export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const { isLoading, setLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<MerchantResponse | null>(null);
 
   // Add new state for merchant-related data
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [settlements, setSettlements] = useState<Settlement[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
-
+  const [transactions, setTransactions] = useState<TransactionResponse | null>(
+    null
+  );
+  const [settlements, setSettlements] = useState<SettlementResponse | null>(
+    null
+  );
+  const [notifications, setNotifications] =
+    useState<NotificationResponse | null>(null);
+  const [documents, setDocuments] = useState<DocumentResponse | null>(null);
+  const [payments, setPayments] = useState<PaymentResponse | null>(null);
+  const [paymentSessions, setPaymentSessions] =
+    useState<PaymentSessionResponse | null>(null);
   const fetchMerchants = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       const searchParams = new URLSearchParams({
-        limit: limit.toString(),
-        offset: ((page - 1) * limit).toString(),
+        limit: pageSize.toString(),
+        offset: ((page - 1) * pageSize).toString(),
         ...(search && { search }),
       });
 
@@ -190,11 +228,11 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
   ): Promise<Transaction[]> => {
     try {
       setLoading(true);
-      const response = await axios.get<ApiListResponse<Transaction>>(
+      const response = await axios.get<TransactionResponse>(
         endPoints.transactions.get(merchantId)
       );
-      setTransactions(response.data.data);
-      return response.data.data;
+      setTransactions(response.data);
+      return response.data.items;
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Failed to fetch transactions";
@@ -214,11 +252,11 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
   ): Promise<Settlement[]> => {
     try {
       setLoading(true);
-      const response = await axios.get<ApiListResponse<Settlement>>(
+      const response = await axios.get<SettlementResponse>(
         endPoints.settlements.get(merchantId)
       );
-      setSettlements(response.data.data);
-      return response.data.data;
+      setSettlements(response.data);
+      return response.data.items;
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Failed to fetch settlements";
@@ -235,19 +273,22 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
 
   const fetchMerchantPayments = async (
     merchantId: string
-  ): Promise<Settlement[]> => {
+  ): Promise<Payment[]> => {
     try {
       setLoading(true);
-      const response = await axios.get<ApiListResponse<Settlement>>(
-        endPoints.settlements.get(merchantId)
+      const response = await axios.get<PaymentResponse>(
+        endPoints.payments.merchantPayments(merchantId)
       );
-      setSettlements(response.data.data);
-      return response.data.data;
+      setPayments(response.data);
+
+      console.log("Payments: ", response);
+
+      return response.data.items;
     } catch (err: any) {
       const message =
-        err?.response?.data?.message || "Failed to fetch settlements";
+        err?.response?.data?.message || "Failed to fetch payments";
       toast({
-        title: "Error fetching settlements",
+        title: "Error fetching payments",
         description: message,
         variant: "destructive",
       });
@@ -262,11 +303,11 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
   ): Promise<Notification[]> => {
     try {
       setLoading(true);
-      const response = await axios.get<ApiListResponse<Notification>>(
+      const response = await axios.get<NotificationResponse>(
         endPoints.notifications.get(merchantId)
       );
-      setNotifications(response.data.data);
-      return response.data.data;
+      setNotifications(response.data);
+      return response.data.items;
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Failed to fetch notifications";
@@ -286,11 +327,11 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
   ): Promise<Document[]> => {
     try {
       setLoading(true);
-      const response = await axios.get<ApiListResponse<Document>>(
+      const response = await axios.get<DocumentResponse>(
         endPoints.documents.get(merchantId)
       );
-      setDocuments(response.data.data);
-      return response.data.data;
+      setDocuments(response.data);
+      return response.data.items;
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Failed to fetch documents";
@@ -329,6 +370,8 @@ export function useMerchant({ limit = 10 }: UseMerchantOptions = {}) {
     fetchMerchantTransactions,
     fetchMerchantSettlements,
     fetchMerchantNotifications,
+    fetchMerchantPayments,
+    payments,
     fetchMerchantDocuments,
   };
 }

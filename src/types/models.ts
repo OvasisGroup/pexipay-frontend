@@ -203,3 +203,32 @@ export interface Document {
   uploadedAt: Date;
   expiresAt: Date | null;
 }
+
+export interface PaymentSession {
+  id: string;
+  merchantId: string;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  successUrl: string;
+  cancelUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+  expiresAt: Date;
+}
+
+export interface Payment {
+  id: string;
+  merchantId: string;
+  sessionId: string;
+  amount: number;
+  currencyId: string;
+  status: PaymentStatus;
+  lastFourDigits: string;
+  cardholderName: string;
+  createdAt: Date;
+  updatedAt: Date;
+  currency?: string;
+  merchant?: Merchant;
+  session?: PaymentSession;
+}

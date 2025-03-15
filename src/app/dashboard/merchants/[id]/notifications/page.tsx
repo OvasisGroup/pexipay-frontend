@@ -52,7 +52,7 @@ export default function NotificationsPage({
     loadTransactions();
   }, [id]);
 
-  const filteredNotifications = notifications?.filter((notification) =>
+  const filteredNotifications = notifications?.items?.filter((notification) =>
     notification.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

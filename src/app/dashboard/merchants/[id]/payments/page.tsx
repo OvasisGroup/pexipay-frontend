@@ -3,10 +3,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useLoading } from "@/providers/LoadingProvider";
-import axios from "@/lib/axios";
-import { endPoints } from "@/lib/endpoints";
-import { toast } from "@/components/ui/use-toast";
 import {
   Table,
   TableBody,
@@ -19,22 +15,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search, Download, PlusCircle } from "lucide-react";
 import React from "react";
+import { useMerchant } from "@/hooks/useMerchant";
+import { PaymentStatus, Payment } from "@/types/models";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { format } from "date-fns";
 
-interface Payment {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  paymentMethod: string;
-  customerName: string;
-  customerEmail: string;
-  createdAt: string;
-  reference: string;
-  description: string;
-}
-
-interface ApiResponse {
-  data: Payment[];
+interface PaymentDetailsModalProps {
+  payment: Payment;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function PaymentsPage({
@@ -42,39 +36,20 @@ export default function PaymentsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const { setLoading } = useLoading();
-
+  const { fetchMerchantPayments, payments, isLoading } = useMerchant();
   const { id } = React.use(params);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 
   useEffect(() => {
     const fetchPayments = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get<ApiResponse>(
-          `${endPoints.merchants.get}/${id}/payments`
-        );
-        setPayments(response.data.data);
-      } catch (error: any) {
-        toast({
-          title: "Error fetching payments",
-          description:
-            error?.response?.data?.message || "Could not fetch payments",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-        setLoading(false);
-      }
+      await fetchMerchantPayments(id);
     };
-
     fetchPayments();
   }, [id]);
 
-  const filteredPayments = payments.filter((payment) =>
-    payment.reference.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPayments = payments?.items?.filter((payment) =>
+    payment.cardholderName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (isLoading) {
@@ -99,13 +74,9 @@ export default function PaymentsPage({
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Payments</h1>
         <div className="space-x-2">
-          <Button variant="outline">
+          <Button>
             <Download className="h-4 w-4 mr-2" />
             Export
-          </Button>
-          <Button>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            New Payment
           </Button>
         </div>
       </div>
@@ -127,7 +98,7 @@ export default function PaymentsPage({
             </div>
           </div>
 
-          {filteredPayments.length === 0 ? (
+          {filteredPayments?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No payments found.
             </div>
@@ -135,27 +106,24 @@ export default function PaymentsPage({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Reference</TableHead>
+                  <TableHead>#</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Amount</TableHead>
-                  <TableHead>Method</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayments.map((payment) => (
+                {filteredPayments?.map((payment, index: number) => (
                   <TableRow key={payment.id}>
-                    <TableCell>{payment.reference}</TableCell>
+                    <TableCell>{index + 1}.</TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">
-                          {payment.customerName}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {payment.customerEmail}
-                        </div>
+                      {payment.sessionId?.slice(0, 15).toLocaleUpperCase()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">
+                        {payment.cardholderName}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -164,13 +132,12 @@ export default function PaymentsPage({
                         currency: payment.currency,
                       }).format(payment.amount)}
                     </TableCell>
-                    <TableCell>{payment.paymentMethod}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          payment.status === "success"
+                          payment.status === PaymentStatus.COMPLETED
                             ? "bg-green-100 text-green-800"
-                            : payment.status === "pending"
+                            : payment.status === PaymentStatus.PENDING
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
                         }`}
@@ -179,11 +146,12 @@ export default function PaymentsPage({
                       </span>
                     </TableCell>
                     <TableCell>
-                      {new Date(payment.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        View Details
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedPayment(payment)}
+                      >
+                        View
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -193,6 +161,77 @@ export default function PaymentsPage({
           )}
         </CardContent>
       </Card>
+
+      {selectedPayment && (
+        <PaymentDetailsModal
+          payment={selectedPayment}
+          isOpen={!!selectedPayment}
+          onClose={() => setSelectedPayment(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function PaymentDetailsModal({
+  payment,
+  isOpen,
+  onClose,
+}: PaymentDetailsModalProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Payment Details</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 items-center gap-4">
+            <div className="font-medium">Session Reference</div>
+            <div>{payment.sessionId.toLocaleUpperCase()}</div>
+          </div>
+          <div className="grid grid-cols-2 items-center gap-4">
+            <div className="font-medium">Cardholder Name</div>
+            <div>{payment.cardholderName}</div>
+          </div>
+          <div className="grid grid-cols-2 items-center gap-4">
+            <div className="font-medium">Amount</div>
+            <div>
+              {new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: payment.currency,
+              }).format(payment.amount)}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 items-center gap-4">
+            <div className="font-medium">Card Number</div>
+            <div>**** **** **** {payment.lastFourDigits}</div>
+          </div>
+          <div className="grid grid-cols-2 items-center gap-4">
+            <div className="font-medium">Status</div>
+            <div>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  payment.status === PaymentStatus.COMPLETED
+                    ? "bg-green-100 text-green-800"
+                    : payment.status === PaymentStatus.PENDING
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {payment.status}
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 items-center gap-4">
+            <div className="font-medium">Created At</div>
+            <div>{format(new Date(payment.createdAt), "PPpp")}</div>
+          </div>
+          <div className="grid grid-cols-2 items-center gap-4">
+            <div className="font-medium">Updated At</div>
+            <div>{format(new Date(payment.updatedAt), "PPpp")}</div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

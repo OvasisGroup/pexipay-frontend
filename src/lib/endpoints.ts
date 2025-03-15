@@ -48,6 +48,8 @@ export const endPoints = {
     initatePayment: (sessiondId: string) => `/payments/checkout/${sessiondId}`,
   },
   payments: {
+    merchantPayments: (merchantId: string) =>
+      `/merchants/${merchantId}/payments`,
     get: "/payments/",
     create: "/payments",
     update: (id: string): string => `/payments/${id}`,

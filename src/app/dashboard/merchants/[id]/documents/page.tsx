@@ -53,7 +53,7 @@ export default function DocumentsPage({
     loadTransactions();
   }, [id]);
 
-  const filteredDocuments = documents?.filter((document: any) =>
+  const filteredDocuments = documents?.items?.filter((document: any) =>
     document.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

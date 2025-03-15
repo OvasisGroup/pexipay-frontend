@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/auth.store";
 import { useLoading } from "@/providers/LoadingProvider";
@@ -86,7 +87,17 @@ export default function DashboardLayout({
         )}
       >
         <div className="p-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Pexi Pay</h1>
+          <Link
+            href="/"
+            className="flex items-center gap-2 ml-4 bg-black w-full p-4 rounded-md"
+          >
+            <Image
+              src="/images/logo.png"
+              alt="Pexi Pay"
+              width={100}
+              height={100}
+            />
+          </Link>
           <Button
             variant="ghost"
             size="icon"
