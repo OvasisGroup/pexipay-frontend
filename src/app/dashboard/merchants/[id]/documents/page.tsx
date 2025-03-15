@@ -3,30 +3,55 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useLoading } from "@/providers/LoadingProvider";
-import axios from "@/lib/axios";
-import { endPoints } from "@/lib/endpoints";
-import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Search, Upload, FileText, Download } from "lucide-react";
+import { Search, Upload, FileText, Download, Calendar } from "lucide-react";
 import React from "react";
-import { useMerchant } from "@/hooks/useMerchant";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useMerchantDocument } from "@/hooks/useMerchantDocument";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-interface Document {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  status: string;
-  uploadedAt: string;
-  category: string;
-  url: string;
-}
-
-interface ApiResponse {
-  data: Document[];
-}
+const formSchema = z.object({
+  type: z.string({
+    required_error: "Please select a document type",
+  }),
+  file: z.instanceof(File, {
+    message: "Please upload a document",
+  }),
+  expiresAt: z.date().optional(),
+});
 
 export default function DocumentsPage({
   params,
@@ -34,36 +59,47 @@ export default function DocumentsPage({
   params: Promise<{ id: string }>;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const { isLoading, fetchMerchantDocuments, documents } = useMerchant();
-  const { setLoading } = useLoading();
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const {
+    documents,
+    isLoading,
+    error,
+    fetchDocuments,
+    uploadDocument,
+    documentTypes,
+  } = useMerchantDocument();
 
-  const { id } = React.use(params);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
+
+  const resolvedParams = React.use(params);
+  const { id } = resolvedParams;
 
   useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        setLoading(true);
-        await fetchMerchantDocuments(id);
-      } catch (error) {
-      } finally {
-        setLoading(false);
+    fetchDocuments(id);
+  }, [fetchDocuments, id]);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const formData = new FormData();
+      formData.append("type", values.type);
+      formData.append("file", values.file);
+      if (values.expiresAt) {
+        formData.append("expiresAt", values.expiresAt.toISOString());
       }
-    };
 
-    loadTransactions();
-  }, [id]);
-
-  const filteredDocuments = documents?.items?.filter((document: any) =>
-    document.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      await uploadDocument(id, formData);
+      form.reset();
+      setIsUploadModalOpen(false);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+    }
   };
+
+  const filteredDocuments = documents?.filter((document) =>
+    document.type?.toString().toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (isLoading) {
     return (
@@ -86,10 +122,136 @@ export default function DocumentsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Documents</h1>
-        <Button>
-          <Upload className="h-4 w-4 mr-2" />
-          Upload Document
-        </Button>
+        <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Document
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upload New Document</DialogTitle>
+              <DialogDescription>
+                Upload a document for your merchant account. Supported formats:
+                PDF, JPG, PNG.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Document Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a document type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {documentTypes.map((type) => (
+                            <SelectItem key={type.type} value={type.type}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="file"
+                  render={({ field: { onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Document File</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) =>
+                            onChange(e.target.files ? e.target.files[0] : null)
+                          }
+                          name={field.name}
+                          ref={field.ref}
+                          onBlur={field.onBlur}
+                          disabled={field.disabled}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="expiresAt"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Expiry Date (Optional)</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date < new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsUploadModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Uploading..." : "Upload"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -115,37 +277,40 @@ export default function DocumentsPage({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredDocuments?.map((document: any) => (
+              {filteredDocuments?.map((document) => (
                 <Card key={document.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
                         <FileText className="h-8 w-8 text-muted-foreground" />
                         <div>
-                          <h3 className="font-medium">{document.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {formatFileSize(document.size)}
-                          </p>
+                          <h3 className="font-medium">
+                            {(() => {
+                              const foundType = documentTypes.find(
+                                (t) => String(t.type) === String(document.type)
+                              );
+                              return String(foundType?.label || document.type);
+                            })()}
+                          </h3>
+                          {document.expiresAt && (
+                            <p className="text-sm text-muted-foreground">
+                              Expires:{" "}
+                              {format(new Date(document.expiresAt), "PPP")}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => window.open(document.url, "_blank")}
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="mt-4 flex items-center justify-between">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          document.status === "verified"
-                            ? "bg-green-100 text-green-800"
-                            : document.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {document.status}
-                      </span>
                       <span className="text-sm text-muted-foreground">
-                        {new Date(document.uploadedAt).toLocaleDateString()}
+                        Uploaded: {format(new Date(document.uploadedAt), "PPP")}
                       </span>
                     </div>
                   </CardContent>

@@ -7,10 +7,10 @@ export const endPoints = {
   },
   merchants: {
     get: "/merchants",
+    getById: (id: string) => `/merchants/${id}`,
     create: "/merchants",
-    getById: (id: string): string => `/merchants/${id}`,
-    update: (id: string): string => `/merchants/${id}`,
-    delete: (id: string): string => `/merchants/${id}`,
+    update: (id: string) => `/merchants/${id}`,
+    delete: (id: string) => `/merchants/${id}`,
   },
   bankAccounts: {
     get: (merchantId: string): string =>
@@ -23,18 +23,23 @@ export const endPoints = {
       `/merchants/${merchantId}/bank-account`,
   },
   transactions: {
-    get: (merchantId: string): string =>
-      `/merchants/${merchantId}/transactions`,
+    get: (merchantId: string) => `/merchants/${merchantId}/transactions`,
   },
   settlements: {
-    get: (merchantId: string): string => `/merchants/${merchantId}/settlements`,
+    get: (merchantId: string) => `/merchants/${merchantId}/settlements`,
   },
   notifications: {
-    get: (merchantId: string): string =>
-      `/merchants/${merchantId}/notifications`,
+    get: (merchantId: string) => `/merchants/${merchantId}/notifications`,
   },
   documents: {
-    get: (merchantId: string): string => `/merchants/${merchantId}/documents`,
+    get: (merchantId: string) => `/merchants/${merchantId}/documents`,
+    create: (merchantId: string) => `/merchants/${merchantId}/documents`,
+    update: (merchantId: string, documentId: string): string =>
+      `/merchants/${merchantId}/documents/${documentId}`,
+    delete: (merchantId: string, documentId: string): string =>
+      `/merchants/${merchantId}/documents/${documentId}`,
+    types: (merchantId: string) =>
+      `/merchants/${merchantId}/documents/document-types`,
   },
   countries: {
     get: "/countries",
@@ -64,5 +69,12 @@ export const endPoints = {
     ipWhitelistCreate: (id: string): string => `/keys/${id}/whitelist`,
     ipWhitelistDelete: (id: string, whitelistId: string): string =>
       `/keys/${id}/whitelist/${whitelistId}`,
+  },
+  auth: {
+    login: "/auth/login",
+    register: "/auth/register",
+    logout: "/auth/logout",
+    refresh: "/auth/refresh",
+    me: "/auth/me",
   },
 } as const;
