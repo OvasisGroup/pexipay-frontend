@@ -15,10 +15,8 @@ import { useLoading } from "@/providers/LoadingProvider";
 
 export default function MerchantDetailLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
 }) {
   const router = useRouter();
   const pathname = usePathname();
