@@ -1,5 +1,4 @@
 import { Navbar } from "@/components/Navbar";
-import { PaymentForm } from "@/components/PaymentForm";
 
 export default function ShopLayout({
   children,
