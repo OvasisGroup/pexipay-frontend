@@ -32,8 +32,8 @@ export function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "user@pexilabs.com",
-      password: "StrongP@ssw0rd123",
+      email: "",
+      password: "",
     },
   });
 
