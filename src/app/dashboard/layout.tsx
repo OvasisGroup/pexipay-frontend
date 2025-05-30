@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { DashboardNavbar } from "@/components/Navbar";
 
 export default function DashboardLayout({
   children,
@@ -128,73 +129,11 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
         {/* Top Navigation */}
-        <nav className="bg-white shadow-sm h-16 fixed w-full lg:w-[calc(100%-16rem)] z-20">
-          <div className="h-full px-4 flex items-center justify-between">
-            {/* Menu Toggle for Mobile */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={toggleSidebar}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-
-            {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-xl mx-auto">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="w-full pl-10 bg-gray-50"
-                />
-              </div>
-            </div>
-
-            {/* Right Section */}
-            <div className="flex items-center gap-4">
-              {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <BellIcon className="w-5 h-5" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-              </Button>
-
-              {/* User Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      {user?.firstName?.[0]}
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span>{`${user?.firstName} ${user?.lastName}`}</span>
-                      <span className="text-sm text-gray-500">
-                        {user?.email}
-                      </span>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <Link href="/dashboard/profile">
-                    <DropdownMenuItem>
-                      <UserIcon className="w-4 h-4 mr-2" />
-                      My Profile
-                    </DropdownMenuItem>
-                  </Link>
-
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </nav>
+        <DashboardNavbar
+          user={user}
+          handleLogout={handleLogout}
+          toggleSidebar={toggleSidebar}
+        />
 
         {/* Main Content Area */}
         <main className="pt-20 px-4 md:px-6 pb-8">{children}</main>

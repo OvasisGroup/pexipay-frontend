@@ -1,19 +1,5 @@
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useState, useEffect } from "react";
+import Select from "react-select";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useCountry } from "@/hooks/useCountry";
 
 interface CountrySelectProps {
@@ -27,8 +13,28 @@ export function CountrySelect({
   onChange,
   placeholder = "Select country...",
 }: CountrySelectProps) {
-  const [open, setOpen] = useState(false);
-  const { countries, fetchCountries, updateSearch } = useCountry({ limit: 50 });
+  const { countries, fetchCountries, updateSearch } = useCountry({
+    limit: 50,
+  });
+
+  // Debounce ref
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  // Add state for inputValue
+  const [inputValue, setInputValue] = useState("");
+
+  // Debounced search handler
+  const handleInputChange = useCallback(
+    (inputValue: string) => {
+      setInputValue(inputValue);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        updateSearch(inputValue);
+        fetchCountries();
+      }, 300);
+      return inputValue;
+    },
+    [updateSearch, fetchCountries]
+  );
 
   useEffect(() => {
     if (!value) {
@@ -37,53 +43,36 @@ export function CountrySelect({
   }, []);
 
   useEffect(() => {
-    fetchCountries();
+    fetchCountries(); // Fetch all on mount
   }, [fetchCountries]);
 
+  const options = countries.map((country) => ({
+    value: country.id,
+    label: `${country.name} (${country.code})`,
+  }));
+
+  const selectedOption =
+    options.find((option) => option.value === value) || null;
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {value
-            ? countries.find((country) => country.code === value)?.name
-            : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput
-            placeholder="Search countries..."
-            onValueChange={updateSearch}
-          />
-          <CommandEmpty>No country found.</CommandEmpty>
-          <CommandGroup>
-            {countries.map((country) => (
-              <CommandItem
-                key={country.id}
-                value={country.code}
-                onSelect={() => {
-                  onChange(country.code);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === country.code ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {country.name} ({country.code})
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Select
+      options={options}
+      value={selectedOption}
+      onChange={(option) => {
+        onChange(option ? option.value : "");
+        setInputValue(""); // Clear input after selection
+      }}
+      placeholder={placeholder}
+      isSearchable
+      inputValue={inputValue}
+      onInputChange={handleInputChange}
+      classNamePrefix="react-select"
+      styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+        }
+      }}
+    />
   );
 }

@@ -11,6 +11,15 @@ export interface RegisterCredentials {
   firstName: string;
   lastName: string;
   phoneNumber?: string;
+  merchant?: {
+    businessName: string;
+    businessType?: string;
+    registrationNo?: string;
+    countryId: string;
+    supportEmail?: string;
+    supportPhone?: string;
+    webhookEndpoint?: string;
+  };
 }
 
 export interface AuthResponse {

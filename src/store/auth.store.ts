@@ -114,9 +114,13 @@ export const useAuthStore = create<AuthState>()(
             throw new Error("Registration failed");
           }
 
-          await get().login({
-            email: credentials.email,
-            password: credentials.password,
+          const data = await response.json();
+
+          set({
+            user: data.user,
+            token: data.access_token,
+            refreshToken: data.refresh_token,
+            isAuthenticated: true,
           });
         } catch (error) {
           throw error;
