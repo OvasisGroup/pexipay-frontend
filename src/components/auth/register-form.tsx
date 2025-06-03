@@ -108,10 +108,9 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
     try {
       const payload = { ...values };
       await axios.post("/api/auth/register", payload);
-      router.push("/auth/login");
+      router.push("/login");
     } catch (error) {
       console.error("Registration failed:", error);
-      // TODO: Handle registration error, e.g., display error message to user
     } finally {
       setIsLoading(false);
     }
@@ -383,13 +382,11 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
-        {/* <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div> */}
       </div>
-      {/* Social login buttons can be added here if needed */}
+      {/* Debug: Show current form values */}
+      <pre className="mt-4 p-2 bg-muted/50 rounded text-xs overflow-x-auto">
+        {JSON.stringify(form.watch(), null, 2)}
+      </pre>
     </div>
   );
 }
