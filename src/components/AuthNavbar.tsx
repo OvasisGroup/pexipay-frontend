@@ -22,8 +22,8 @@ export function AuthNavbar() {
             <Link href="/login">
               <Button variant="outline">Login</Button>
             </Link>
-            <Link href="/register">
-              <Button>Register</Button>
+            <Link href="/onboard">
+              <Button>Onboard</Button>
             </Link>
           </div>
         </div>
