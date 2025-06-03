@@ -1,5 +1,4 @@
 import * as React from "react";
-import axios from "axios"; // Import axios
 import { useRouter } from "next/navigation"; // Import useRouter
 
 import { cn } from "@/lib/utils";
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuthStore } from "@/store/auth.store";
 import * as z from "zod";
 
 import {
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Stepper, Step } from "@/components/ui/stepper";
+import { RegisterCredentials } from "@/types/auth";
 
 // Extend the form schema for merchant onboarding
 const merchantSchema = z.object({
@@ -77,6 +78,8 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
   const [step, setStep] = React.useState(0);
   const router = useRouter();
 
+  const { register } = useAuthStore();
+
   const steps: Step[] = [
     { label: "User Info" },
     { label: "Merchant Info" },
@@ -106,8 +109,17 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
   async function onSubmit(values: RegisterFormValues) {
     setIsLoading(true);
     try {
-      const payload = { ...values };
-      await axios.post("/api/auth/register", payload);
+      const merchant = { ...values.merchant };
+      if (!merchant.webhookEndpoint || merchant.webhookEndpoint.trim() === "") {
+        delete merchant.webhookEndpoint;
+      }
+      const payload = {
+        ...values,
+        phoneNumber: values.phoneNumber ?? undefined,
+        merchant,
+      };
+      console.log("Register Payload:", payload);
+      await register(payload);
       router.push("/login");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -115,7 +127,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
       setIsLoading(false);
     }
   }
-
   function handleNext() {
     setStep((s) => Math.min(s + 1, 2));
   }
@@ -383,10 +394,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
           <span className="w-full border-t" />
         </div>
       </div>
-      {/* Debug: Show current form values */}
-      <pre className="mt-4 p-2 bg-muted/50 rounded text-xs overflow-x-auto">
-        {JSON.stringify(form.watch(), null, 2)}
-      </pre>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "@/lib/axios";
 import { User } from "@/types";
 
-interface LoginResponse {
+interface RegisterResponse {
   accessToken: string;
   refreshToken: string;
   user: User;
@@ -14,7 +14,9 @@ export async function POST(request: NextRequest) {
     const { email, password, firstName, lastName, phoneNumber, merchant } =
       body;
 
-    const response = await axios.post<LoginResponse>("/auth/register", {
+    console.log("Fix Router: ", body);
+
+    const response = await axios.post<RegisterResponse>("/auth/register", {
       email,
       password,
       firstName,
@@ -53,6 +55,7 @@ export async function POST(request: NextRequest) {
 
     return response_with_cookies;
   } catch (error: any) {
+    console.error("Backend registration error:", error);
     return NextResponse.json(
       { error: error.response?.data?.message || "Registration failed" },
       { status: 401 }

@@ -101,6 +101,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       register: async (credentials: RegisterCredentials) => {
+        console.log("Fix: ", credentials);
         try {
           const response = await fetch("/api/auth/register", {
             method: "POST",
