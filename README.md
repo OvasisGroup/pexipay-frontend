@@ -43,3 +43,4 @@ modify AuthController and add update profile endpoint, also
 add updateProfile to userAuthStore.ts and make sure the profile/page.tsx is responsive
 
 Currency and Country should be optional in user model
+# pexipay-frontend
