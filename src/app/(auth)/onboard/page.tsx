@@ -15,7 +15,7 @@ export default function RegisterPage() {
         <h1 className="text-3xl font-bold tracking-tight text-blue-900 mt-4">
           Create an account
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground mb-10">
           Enter your details below to create your account
         </p>
         <RegisterForm />

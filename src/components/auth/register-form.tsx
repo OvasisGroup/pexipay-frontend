@@ -360,14 +360,14 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
               </div>
             </div>
           )}
-          <div className="flex justify-between mt-6">
+          <div className="flex flex-row justify-between mt-6 max-w-full">
             {step > 0 && (
-              <Button type="button" variant="outline" onClick={handleBack} className="w-full bg-blue-900 text-white">
+              <Button type="button" variant="outline" onClick={handleBack} className=" bg-blue-900 text-white">
                 Back
               </Button>
             )}
             {step < 2 && (
-              <Button type="button" onClick={handleNext} className="w-full bg-blue-900 text-white">
+              <Button type="button" onClick={handleNext}>
                 Next
               </Button>
             )}
