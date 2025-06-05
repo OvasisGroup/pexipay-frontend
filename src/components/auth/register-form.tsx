@@ -135,6 +135,7 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
   }
 
   return (
+    <div className="w-full max-w-md"> 
     <div className={cn("grid gap-6", className)} {...props}>
       <Stepper steps={steps} currentStep={step} />
       <Form {...form}>
@@ -149,7 +150,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
                     <FormControl>
                       <Input placeholder="John" {...field} />
                     </FormControl>
@@ -162,7 +162,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Doe" {...field} />
                     </FormControl>
@@ -175,7 +174,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input placeholder="name@example.com" {...field} />
                     </FormControl>
@@ -188,7 +186,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
@@ -205,7 +202,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number (Optional)</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="+1 123 456 7890"
@@ -226,7 +222,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="merchant.businessName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Business Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Business Name" {...field} />
                     </FormControl>
@@ -239,7 +234,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="merchant.businessType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Business Type</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -264,7 +258,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="merchant.registrationNo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Registration Number</FormLabel>
                     <FormControl>
                       <Input placeholder="Registration Number" {...field} />
                     </FormControl>
@@ -277,7 +270,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="merchant.countryId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country</FormLabel>
                     <FormControl>
                       <CountrySelect
                         value={field.value}
@@ -294,7 +286,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="merchant.supportEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Support Email</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -311,7 +302,6 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                 name="merchant.supportPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Support Phone</FormLabel>
                     <FormControl>
                       <Input placeholder="Support Phone" {...field} />
                     </FormControl>
@@ -372,12 +362,12 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
           )}
           <div className="flex justify-between mt-6">
             {step > 0 && (
-              <Button type="button" variant="outline" onClick={handleBack}>
+              <Button type="button" variant="outline" onClick={handleBack} className="w-full bg-blue-900 text-white">
                 Back
               </Button>
             )}
             {step < 2 && (
-              <Button type="button" onClick={handleNext}>
+              <Button type="button" onClick={handleNext} className="w-full bg-blue-900 text-white">
                 Next
               </Button>
             )}
@@ -394,6 +384,7 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
           <span className="w-full border-t" />
         </div>
       </div>
+    </div>
     </div>
   );
 }
